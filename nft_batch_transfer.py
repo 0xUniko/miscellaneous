@@ -17,6 +17,8 @@ accounts = [Account.from_key(key).address for key in private_keys]
 with open('Farm.json', 'r') as f:
     abi = json.loads(f.read())
 
+Account.enable_unaudited_hdwallet_features()
+
 farm_addr = '0x2B4A66557A79263275826AD31a4cDDc2789334bD'
 
 # http provider here
@@ -38,8 +40,13 @@ print('total farm amount is ', total_farm_amount)
 def create_accounts(amount):
     accounts = []
     for _ in range(amount):
-        acct = Account.create()
-        accounts.append({'address': acct.address, 'key': acct.key.hex()})
+        acct, mnemonic = Account.create_with_mnemonic()
+        accounts.append({
+            'address': acct.address,
+            'key': acct.key.hex(),
+            'mnemonic': mnemonic,
+            'tokenId': ''
+        })
     return accounts
 
 
@@ -82,3 +89,10 @@ for i, acct in enumerate(accounts):
         hash = w3.eth.send_raw_transaction(signed_transfer_tx.rawTransaction)
 
         print('transfer transaction sended with hash: ', hash.hex())
+
+        new_accounts.loc[accounts_farm_amount_cumsum[i] + j,
+                         'tokenId'] = token_id
+
+        new_accounts.to_csv('new_accounts.csv', index=False)
+
+        print('new_accounts.csv updated')
